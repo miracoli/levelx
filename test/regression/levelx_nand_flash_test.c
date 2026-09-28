@@ -228,6 +228,24 @@ UCHAR   *byte_ptr;
         }
     }
 
+    /* Release a range in a full block and check both surviving neighbors.  */
+    status = lx_nand_flash_sectors_release(&nand_sim_flash, 40, 20);
+    if (status != LX_SUCCESS)
+    {
+        printf("FAILED: range release\n");
+        exit(1);
+    }
+    for (i = 39; i <= 60; i++)
+    {
+        status = lx_nand_flash_sector_read(&nand_sim_flash, i, buffer);
+        if ((status != LX_SUCCESS) ||
+            (buffer[0] != ((i >= 40 && i < 60) ? 0xFFFFFFFFUL : i)))
+        {
+            printf("FAILED: range release sector %lu\n", i);
+            exit(1);
+        }
+    }
+
     _lx_nand_flash_close(&nand_sim_flash);
     printf("SUCCESS!\n");
 
@@ -2391,5 +2409,4 @@ UCHAR   *byte_ptr;
      {
      }
 }
-
 
