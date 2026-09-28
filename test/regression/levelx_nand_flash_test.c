@@ -228,6 +228,25 @@ UCHAR   *byte_ptr;
         }
     }
 
+    /* Replace a range inside a full block without changing its neighbors.  */
+    LX_MEMSET(local_data_buffer, 0xA5, 20 * 512);
+    status = lx_nand_flash_sectors_write(&nand_sim_flash, 40, local_data_buffer, 20);
+    if (status != LX_SUCCESS)
+    {
+        printf("FAILED: range write\n");
+        exit(1);
+    }
+    for (i = 39; i <= 60; i++)
+    {
+        status = lx_nand_flash_sector_read(&nand_sim_flash, i, buffer);
+        if ((status != LX_SUCCESS) ||
+            (buffer[0] != ((i >= 40 && i < 60) ? 0xA5A5A5A5UL : i)))
+        {
+            printf("FAILED: range write sector %lu\n", i);
+            exit(1);
+        }
+    }
+
     _lx_nand_flash_close(&nand_sim_flash);
     printf("SUCCESS!\n");
 
@@ -2391,5 +2410,4 @@ UCHAR   *byte_ptr;
      {
      }
 }
-
 
