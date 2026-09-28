@@ -228,6 +228,38 @@ UCHAR   *byte_ptr;
         }
     }
 
+    /* Batch read across a block boundary, then read unwritten pages.  */
+    status = lx_nand_flash_sectors_read(&nand_sim_flash, 250, local_data_buffer, 10);
+    if (status != LX_SUCCESS)
+    {
+        printf("FAILED: range read\n");
+        exit(1);
+    }
+    for (i = 0; i < 10; i++)
+    {
+        ULONG value;
+        LX_MEMCPY(&value, local_data_buffer + i * 512, sizeof(value));
+        if (value != 250 + i)
+        {
+            printf("FAILED: range read sector %lu\n", 250 + i);
+            exit(1);
+        }
+    }
+    status = lx_nand_flash_sectors_read(&nand_sim_flash, 520, local_data_buffer, 10);
+    if (status != LX_SUCCESS)
+    {
+        printf("FAILED: unwritten range read\n");
+        exit(1);
+    }
+    for (i = 0; i < 10 * 512; i++)
+    {
+        if (local_data_buffer[i] != 0xFF)
+        {
+            printf("FAILED: unwritten range data\n");
+            exit(1);
+        }
+    }
+
     _lx_nand_flash_close(&nand_sim_flash);
     printf("SUCCESS!\n");
 
@@ -2391,5 +2423,4 @@ UCHAR   *byte_ptr;
      {
      }
 }
-
 
